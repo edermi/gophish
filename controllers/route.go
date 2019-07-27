@@ -100,6 +100,8 @@ func (as *AdminServer) registerRoutes() {
 	router.HandleFunc("/logout", mid.Use(as.Logout, mid.RequireLogin))
 	router.HandleFunc("/campaigns", mid.Use(as.Campaigns, mid.RequireLogin))
 	router.HandleFunc("/campaigns/{id:[0-9]+}", mid.Use(as.CampaignID, mid.RequireLogin))
+	router.HandleFunc("/static_campaigns", mid.Use(as.StaticCampaigns, mid.RequireLogin))
+	router.HandleFunc("/static_campaigns/{id:[0-9]+}", mid.Use(as.StaticCampaignID, mid.RequireLogin))
 	router.HandleFunc("/templates", mid.Use(as.Templates, mid.RequireLogin))
 	router.HandleFunc("/groups", mid.Use(as.Groups, mid.RequireLogin))
 	router.HandleFunc("/landing_pages", mid.Use(as.LandingPages, mid.RequireLogin))
@@ -170,6 +172,21 @@ func (as *AdminServer) CampaignID(w http.ResponseWriter, r *http.Request) {
 	params := newTemplateParams(r)
 	params.Title = "Campaign Results"
 	getTemplate(w, "campaign_results").ExecuteTemplate(w, "base", params)
+}
+
+// StaticCampaigns handles the default path and template execution
+func (as *AdminServer) StaticCampaigns(w http.ResponseWriter, r *http.Request) {
+	log.Debug("###HI###")
+	params := newTemplateParams(r)
+	params.Title = "Static Campaigns"
+	getTemplate(w, "static_campaigns").ExecuteTemplate(w, "base", params)
+}
+
+// StaticCampaignID handles the default path and template execution
+func (as *AdminServer) StaticCampaignID(w http.ResponseWriter, r *http.Request) {
+	params := newTemplateParams(r)
+	params.Title = "Static Campaign Results"
+	getTemplate(w, "static_campaign_results").ExecuteTemplate(w, "base", params)
 }
 
 // Templates handles the default path and template execution

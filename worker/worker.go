@@ -14,6 +14,7 @@ import (
 type Worker interface {
 	Start()
 	LaunchCampaign(c models.Campaign)
+	LaunchStaticCampaign(c models.StaticCampaign)
 	SendTestEmail(s *models.EmailRequest) error
 }
 
@@ -95,6 +96,10 @@ func (w *DefaultWorker) Start() {
 			}(cid, msc)
 		}
 	}
+}
+
+// LaunchStaticCampaign starts a static campaign
+func (w *DefaultWorker) LaunchStaticCampaign(c models.StaticCampaign) {
 }
 
 // LaunchCampaign starts a campaign

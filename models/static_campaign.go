@@ -65,7 +65,7 @@ func (c *StaticCampaign) Validate() error {
 		return ErrCampaignNameNotSpecified
 	case c.Page.Name == "":
 		return ErrPageNotSpecified
-	case !c.LaunchDate.IsZero():
+	case c.LaunchDate.IsZero():
 		return ErrInvalidSendByDate
 	}
 	return nil
@@ -74,7 +74,7 @@ func (c *StaticCampaign) Validate() error {
 // UpdateStatus changes the campaign status appropriately
 func (c *StaticCampaign) UpdateStatus(s string) error {
 	// This could be made simpler, but I think there's a bug in gorm
-	return db.Table("campaigns").Where("id=?", c.Id).Update("status", s).Error
+	return db.Table("static_campaigns").Where("id=?", c.Id).Update("status", s).Error
 }
 
 // AddEvent creates a new campaign event in the database
@@ -89,17 +89,17 @@ func (c *StaticCampaign) AddEvent(e *Event) error {
 // an error is returned. Otherwise, the attribute name is set to [Deleted],
 // indicating the user deleted the attribute (template, smtp, etc.)
 func (c *StaticCampaign) getDetails() error {
-	err := db.Model(c).Related(&c.Results).Error
-	if err != nil {
-		log.Warnf("%s: results not found for campaign", err)
-		return err
-	}
-	err = db.Model(c).Related(&c.Events).Error
-	if err != nil {
-		log.Warnf("%s: events not found for campaign", err)
-		return err
-	}
-	err = db.Table("pages").Where("id=?", c.PageId).Find(&c.Page).Error
+	// err := db.Model(c).Related(&c.Results).Error
+	// if err != nil {
+	// 	log.Warnf("%s: results not found for campaign", err)
+	// 	return err
+	// }
+	// err = db.Model(c).Related(&c.Events).Error
+	// if err != nil {
+	// 	log.Warnf("%s: events not found for campaign", err)
+	// 	return err
+	// }
+	err := db.Table("pages").Where("id=?", c.PageId).Find(&c.Page).Error
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {
 			return err
@@ -114,7 +114,7 @@ func (c *StaticCampaign) getDetails() error {
 // It also backfills numbers as appropriate with a running total, so that the values are aggregated.
 func getStaticCampaignStats(cid int64) (StaticCampaignStats, error) {
 	s := StaticCampaignStats{}
-	query := db.Table("results").Where("campaign_id = ?", cid)
+	query := db.Table("results").Where("static_campaign_id = ?", cid)
 	err := query.Count(&s.Total).Error
 	if err != nil {
 		return s, err
@@ -155,7 +155,7 @@ func GetStaticCampaignSummaries(uid int64) (StaticCampaignSummaries, error) {
 	overview := StaticCampaignSummaries{}
 	cs := []StaticCampaignSummary{}
 	// Get the basic campaign information
-	query := db.Table("campaigns").Where("user_id = ?", uid)
+	query := db.Table("static_campaigns").Where("user_id = ?", uid)
 	query = query.Select("id, name, created_date, completed_date, status")
 	err := query.Scan(&cs).Error
 	if err != nil {
@@ -178,7 +178,7 @@ func GetStaticCampaignSummaries(uid int64) (StaticCampaignSummaries, error) {
 // GetStaticCampaignSummary gets the summary object for a campaign specified by the campaign ID
 func GetStaticCampaignSummary(id int64, uid int64) (StaticCampaignSummary, error) {
 	cs := StaticCampaignSummary{}
-	query := db.Table("campaigns").Where("user_id = ? AND id = ?", uid, id)
+	query := db.Table("static_campaigns").Where("user_id = ? AND id = ?", uid, id)
 	query = query.Select("id, name, created_date, completed_date, status")
 	err := query.Scan(&cs).Error
 	if err != nil {
@@ -209,7 +209,7 @@ func GetStaticCampaign(id int64, uid int64) (StaticCampaign, error) {
 // GetStaticCampaignResults returns just the campaign results for the given campaign
 func GetStaticCampaignResults(id int64, uid int64) (StaticCampaignResults, error) {
 	cr := StaticCampaignResults{}
-	err := db.Table("campaigns").Where("id=? and user_id=?", id, uid).Find(&cr).Error
+	err := db.Table("static_campaigns").Where("id=? and user_id=?", id, uid).Find(&cr).Error
 	if err != nil {
 		log.WithFields(logrus.Fields{
 			"campaign_id": id,
@@ -303,23 +303,19 @@ func DeleteStaticCampaign(id int64) error {
 		"campaign_id": id,
 	}).Info("Deleting campaign")
 	// Delete all the campaign results
-	err := db.Where("campaign_id=?", id).Delete(&Result{}).Error
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-	err = db.Where("campaign_id=?", id).Delete(&Event{}).Error
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-	err = db.Where("campaign_id=?", id).Delete(&MailLog{}).Error
-	if err != nil {
-		log.Error(err)
-		return err
-	}
+	// err := db.Where("campaign_id=?", id).Delete(&Result{}).Error
+	// if err != nil {
+	// 	log.Error(err)
+	// 	return err
+	// }
+	// err = db.Where("campaign_id=?", id).Delete(&Event{}).Error
+	// if err != nil {
+	// 	log.Error(err)
+	// 	return err
+	// }
+
 	// Delete the campaign
-	err = db.Delete(&StaticCampaign{Id: id}).Error
+	err := db.Delete(&StaticCampaign{Id: id}).Error
 	if err != nil {
 		log.Error(err)
 	}
@@ -332,7 +328,7 @@ func CompleteStaticCampaign(id int64, uid int64) error {
 	log.WithFields(logrus.Fields{
 		"campaign_id": id,
 	}).Info("Marking campaign as complete")
-	c, err := GetCampaign(id, uid)
+	c, err := GetStaticCampaign(id, uid)
 	if err != nil {
 		return err
 	}

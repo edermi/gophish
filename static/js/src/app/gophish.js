@@ -89,6 +89,44 @@ var api = {
             return query("/campaigns/" + id + "/summary", "GET", {}, true)
         }
     },
+    // static_campaigns contains the endpoints for /static_campaigns
+    static_campaigns: {
+        // get() - Queries the API for GET /campaigns
+        get: function () {
+            return query("/static_campaigns/", "GET", {}, false)
+        },
+        // post() - Posts a campaign to POST /campaigns
+        post: function (data) {
+            return query("/static_campaigns/", "POST", data, false)
+        },
+        // summary() - Queries the API for GET /campaigns/summary
+        summary: function () {
+            return query("/static_campaigns/summary", "GET", {}, false)
+        }
+    },
+    // static_campaignId contains the endpoints for /static_campaigns/:id
+    static_campaignId: {
+        // get() - Queries the API for GET /static_campaigns/:id
+        get: function (id) {
+            return query("/static_campaigns/" + id, "GET", {}, true)
+        },
+        // delete() - Deletes a campaign at DELETE /campaigns/:id
+        delete: function (id) {
+            return query("/static_campaigns/" + id, "DELETE", {}, false)
+        },
+        // results() - Queries the API for GET /campaigns/:id/results
+        results: function (id) {
+            return query("/static_campaigns/" + id + "/results", "GET", {}, true)
+        },
+        // complete() - Completes a campaign at POST /campaigns/:id/complete
+        complete: function (id) {
+            return query("/static_campaigns/" + id + "/complete", "GET", {}, true)
+        },
+        // summary() - Queries the API for GET /campaigns/summary
+        summary: function (id) {
+            return query("/static_campaigns/" + id + "/summary", "GET", {}, true)
+        }
+    },
     // groups contains the endpoints for /groups
     groups: {
         // get() - Queries the API for GET /groups
